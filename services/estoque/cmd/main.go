@@ -8,10 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 func main() {
 	var router *gin.Engine = gin.Default()
-	
+
 	db, err := config.ConnectDB()
 	if err != nil {
 		panic(err)
@@ -24,14 +23,16 @@ func main() {
 
 	router.POST("/api/products", productHandler.AddProduct)
 	router.GET("/api/products", productHandler.GetProducts)
-	
-	router.GET("/api", func(c *gin.Context){
+	router.GET("/api/products/:codigo", productHandler.GetProductByCode)
+	router.PATCH("/api/products/:codigo/decrement", productHandler.DecrementStock)
+
+	router.GET("/api", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "API is running",
-			"status": "success",
+			"status":  "success",
 		})
 	})
-	
+
 	router.Run(":8080")
-		
+
 }

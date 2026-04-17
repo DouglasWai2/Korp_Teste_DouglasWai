@@ -5,3 +5,7 @@ type Product struct {
 	Descricao string `json:"descricao" db:"descricao"`
 	Saldo     int    `json:"saldo" db:"saldo"`
 }
+
+type DecrementStockRequest struct {
+	Quantidade int `json:"quantidade"`
+}

@@ -7,8 +7,13 @@ import (
 	"faturamento/internal/repository"
 )
 
+type AddNotaFiscalItemInput struct {
+	CodigoProduto string
+	Quantidade    int
+}
+
 type NotaFiscalService interface {
-	AddNotaFiscal(ctx context.Context, status string) (*models.NotaFiscal, error)
+	AddNotaFiscal(ctx context.Context, status string, itens []AddNotaFiscalItemInput) (*models.NotaFiscal, error)
 	GetNotasFiscais(ctx context.Context) ([]models.NotaFiscal, error)
 	PrintNotaFiscal(ctx context.Context, numero int64) (*models.NotaFiscal, error)
 }
@@ -23,12 +28,20 @@ func NewNotaFiscalService(repo repository.NotaFiscalRepository) *notaFiscalServi
 	}
 }
 
-func (s *notaFiscalService) AddNotaFiscal(ctx context.Context, status string) (*models.NotaFiscal, error) {
+func (s *notaFiscalService) AddNotaFiscal(ctx context.Context, status string, itens []AddNotaFiscalItemInput) (*models.NotaFiscal, error) {
 	notaFiscal := models.NotaFiscal{
 		Status: status,
 	}
 
-	if err := s.repo.AddNotaFiscal(ctx, &notaFiscal); err != nil {
+	repoItems := make([]repository.NotaFiscalItemInput, 0, len(itens))
+	for _, item := range itens {
+		repoItems = append(repoItems, repository.NotaFiscalItemInput{
+			CodigoProduto: item.CodigoProduto,
+			Quantidade:    item.Quantidade,
+		})
+	}
+
+	if err := s.repo.AddNotaFiscal(ctx, &notaFiscal, repoItems); err != nil {
 		return nil, err
 	}
 

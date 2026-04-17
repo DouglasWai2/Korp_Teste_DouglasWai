@@ -2,6 +2,7 @@ package main
 
 import (
 	"faturamento/config"
+	estoqueclient "faturamento/internal/clients/estoque"
 	"faturamento/internal/handlers"
 	"faturamento/internal/repository"
 	"faturamento/internal/service"
@@ -18,20 +19,24 @@ func main() {
 	}
 	defer db.Close()
 
-	notaFiscalRepo := repository.NewNotaFiscalRepository(db)
+	estoqueClient := estoqueclient.NewClient(config.GetEstoqueAPIURL())
+	notaFiscalRepo := repository.NewNotaFiscalRepository(db, estoqueClient)
 	notaFiscalService := service.NewNotaFiscalService(notaFiscalRepo)
 	notaFiscalHandler := handlers.NewNotaFiscalHandler(notaFiscalService)
 
-	router.POST("/api/notas-fiscais", notaFiscalHandler.AddNotaFiscal)
-	router.GET("/api/notas-fiscais", notaFiscalHandler.GetNotasFiscais)
-	router.PATCH("/api/notas-fiscais/:numero/print", notaFiscalHandler.PrintNotaFiscal)
-
-	router.GET("/api", func(c *gin.Context) {
+	router.GET("/api/faturamento", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "API is running",
 			"status":  "success",
 		})
 	})
+
+	faturamento := router.Group("/api/faturamento")
+	{
+		faturamento.POST("/notas-fiscais", notaFiscalHandler.AddNotaFiscal)
+		faturamento.GET("/notas-fiscais", notaFiscalHandler.GetNotasFiscais)
+		faturamento.PATCH("/notas-fiscais/:numero/imprimir", notaFiscalHandler.PrintNotaFiscal)
+	}
 
 	router.Run(":8081")
 }

@@ -9,6 +9,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
+const defaultEstoqueAPIURL = "http://localhost:8080"
+
 func ConnectDB() (*sql.DB, error) {
 	err := godotenv.Load()
 	if err != nil {
@@ -26,4 +28,12 @@ func ConnectDB() (*sql.DB, error) {
 	}
 
 	return db, nil
+}
+
+func GetEstoqueAPIURL() string {
+	apiURL := os.Getenv("ESTOQUE_API_URL")
+	if apiURL == "" {
+		return defaultEstoqueAPIURL
+	}
+	return apiURL
 }
