@@ -1,18 +1,14 @@
 package handlers
 
 import(
-	"github.com/gin-gonic/gin"
+	"estoque/internal/service"
 )
 
-type ProductHandler interface{
-	Service ProductService
+type ProductHandler struct{
+	ProductService service.ProductService
 }
 
-func (p *ProductHandler) AddProduct(c* gin.Context){
-	
+func (p *ProductHandler) AddProduct(){
 	
 
-    c.JSON(200, gin.H{
-    	"status": "ok",
-    })
 }
