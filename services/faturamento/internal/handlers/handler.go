@@ -139,6 +139,40 @@ func (h *NotaFiscalHandler) GetNotasFiscais(c *gin.Context) {
 	})
 }
 
+func (h *NotaFiscalHandler) GetNotaFiscalByNumero(c *gin.Context) {
+	numero, err := strconv.ParseInt(c.Param("numero"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"message": "invalid nota fiscal number",
+		})
+		return
+	}
+
+	notaFiscal, err := h.NotaFiscalService.GetNotaFiscalByNumero(c.Request.Context(), numero)
+	if err != nil {
+		switch {
+		case errors.Is(err, repository.ErrNotaFiscalNotFound):
+			c.JSON(http.StatusNotFound, gin.H{
+				"status":  "error",
+				"message": "nota fiscal not found",
+			})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "error",
+				"message": "failed to fetch nota fiscal details",
+				"error":   err.Error(),
+			})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"data":   notaFiscal,
+	})
+}
+
 func (h *NotaFiscalHandler) PrintNotaFiscal(c *gin.Context) {
 	numero, err := strconv.ParseInt(c.Param("numero"), 10, 64)
 	if err != nil {

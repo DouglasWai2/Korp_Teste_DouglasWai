@@ -15,6 +15,7 @@ type AddNotaFiscalItemInput struct {
 type NotaFiscalService interface {
 	AddNotaFiscal(ctx context.Context, status string, itens []AddNotaFiscalItemInput) (*models.NotaFiscal, error)
 	GetNotasFiscais(ctx context.Context) ([]models.NotaFiscal, error)
+	GetNotaFiscalByNumero(ctx context.Context, numero int64) (*models.NotaFiscalDetail, error)
 	PrintNotaFiscal(ctx context.Context, numero int64) (*models.NotaFiscal, error)
 }
 
@@ -55,6 +56,10 @@ func (s *notaFiscalService) GetNotasFiscais(ctx context.Context) ([]models.NotaF
 	}
 
 	return notasFiscais, nil
+}
+
+func (s *notaFiscalService) GetNotaFiscalByNumero(ctx context.Context, numero int64) (*models.NotaFiscalDetail, error) {
+	return s.repo.GetNotaFiscalByNumero(ctx, numero)
 }
 
 func (s *notaFiscalService) PrintNotaFiscal(ctx context.Context, numero int64) (*models.NotaFiscal, error) {

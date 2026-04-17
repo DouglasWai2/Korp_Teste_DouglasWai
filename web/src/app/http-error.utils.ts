@@ -32,7 +32,7 @@ export function mapProductError(error: unknown, fallback: string): string {
   const combined = `${payload.message ?? ''} ${payload.error ?? ''}`;
 
   if (error.status === 0) {
-    return 'Nao foi possivel conectar com a API de estoque.';
+    return 'Problema no servico de produtos, tente novamente mais tarde.';
   }
 
   if (error.status === 400) {
@@ -59,6 +59,10 @@ export function mapProductError(error: unknown, fallback: string): string {
     return 'Ja existe um produto cadastrado com esse codigo.';
   }
 
+  if (error.status >= 500) {
+    return 'Problema no servico de produtos, tente novamente mais tarde.';
+  }
+
   return payload.message ?? fallback;
 }
 
@@ -71,7 +75,7 @@ export function mapInvoiceCreationError(error: unknown, fallback: string): strin
   const combined = `${payload.message ?? ''} ${payload.error ?? ''}`;
 
   if (error.status === 0) {
-    return 'Nao foi possivel conectar com a API de faturamento.';
+    return 'Problema no servico de faturamento, tente novamente mais tarde.';
   }
 
   if (error.status === 400) {
@@ -98,6 +102,13 @@ export function mapInvoiceCreationError(error: unknown, fallback: string): strin
     return 'Um dos produtos informados nao foi encontrado no estoque.';
   }
 
+  if (error.status >= 500) {
+    if (includesAny(combined, ['estoque', 'product'])) {
+      return 'Problema no servico de produtos, tente novamente mais tarde.';
+    }
+    return 'Problema no servico de faturamento, tente novamente mais tarde.';
+  }
+
   return payload.message ?? fallback;
 }
 
@@ -110,7 +121,7 @@ export function mapInvoicePrintError(error: unknown, fallback: string): string {
   const combined = `${payload.message ?? ''} ${payload.error ?? ''}`;
 
   if (error.status === 0) {
-    return 'Nao foi possivel conectar com a API de faturamento.';
+    return 'Problema no servico de faturamento, tente novamente mais tarde.';
   }
 
   if (error.status === 404) {
@@ -131,6 +142,32 @@ export function mapInvoicePrintError(error: unknown, fallback: string): string {
     if (includesAny(combined, ['insufficient stock'])) {
       return 'Um ou mais produtos nao possuem saldo suficiente para imprimir a nota fiscal.';
     }
+  }
+
+  if (error.status >= 500) {
+    if (includesAny(combined, ['estoque', 'product'])) {
+      return 'Problema no servico de produtos, tente novamente mais tarde.';
+    }
+    return 'Problema no servico de faturamento, tente novamente mais tarde.';
+  }
+
+  return payload.message ?? fallback;
+}
+
+export function mapInvoiceDetailError(error: unknown, fallback: string): string {
+  if (!(error instanceof HttpErrorResponse)) {
+    return fallback;
+  }
+
+  const payload = readPayload(error);
+  const combined = `${payload.message ?? ''} ${payload.error ?? ''}`;
+
+  if (error.status === 0 || error.status >= 500) {
+    return 'Problema no servico de faturamento, tente novamente mais tarde.';
+  }
+
+  if (error.status === 404 && includesAny(combined, ['nota fiscal not found'])) {
+    return 'A nota fiscal informada nao foi encontrada.';
   }
 
   return payload.message ?? fallback;

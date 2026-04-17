@@ -19,6 +19,7 @@ var (
 
 type NotaFiscalRepository interface {
 	GetNotasFiscais(ctx context.Context) ([]models.NotaFiscal, error)
+	GetNotaFiscalByNumero(ctx context.Context, numero int64) (*models.NotaFiscalDetail, error)
 	AddNotaFiscal(ctx context.Context, notaFiscal *models.NotaFiscal, itens []NotaFiscalItemInput) error
 	PrintNotaFiscal(ctx context.Context, numero int64) (*models.NotaFiscal, error)
 }
@@ -119,6 +120,50 @@ func (r *notaFiscalRepository) GetNotasFiscais(ctx context.Context) ([]models.No
 	}
 
 	return notasFiscais, nil
+}
+
+func (r *notaFiscalRepository) GetNotaFiscalByNumero(ctx context.Context, numero int64) (*models.NotaFiscalDetail, error) {
+	var detail models.NotaFiscalDetail
+
+	query := `
+		SELECT numero, status
+		FROM notas_fiscais
+		WHERE numero = $1
+	`
+
+	if err := r.db.QueryRowContext(ctx, query, numero).Scan(&detail.Numero, &detail.Status); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotaFiscalNotFound
+		}
+		return nil, err
+	}
+
+	itemsQuery := `
+		SELECT codigo_produto, quantidade::BIGINT
+		FROM nf_produtos
+		WHERE numero_nf = $1
+		ORDER BY codigo_produto
+	`
+
+	rows, err := r.db.QueryContext(ctx, itemsQuery, numero)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var item models.NotaFiscalItem
+		if err := rows.Scan(&item.CodigoProduto, &item.Quantidade); err != nil {
+			return nil, err
+		}
+		detail.Itens = append(detail.Itens, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return &detail, nil
 }
 
 func (r *notaFiscalRepository) PrintNotaFiscal(ctx context.Context, numero int64) (*models.NotaFiscal, error) {

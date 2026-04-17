@@ -46,6 +46,7 @@ func main() {
 	{
 		faturamento.POST("/notas-fiscais", notaFiscalHandler.AddNotaFiscal)
 		faturamento.GET("/notas-fiscais", notaFiscalHandler.GetNotasFiscais)
+		faturamento.GET("/notas-fiscais/:numero", notaFiscalHandler.GetNotaFiscalByNumero)
 		faturamento.PATCH("/notas-fiscais/:numero/imprimir", notaFiscalHandler.PrintNotaFiscal)
 	}
 

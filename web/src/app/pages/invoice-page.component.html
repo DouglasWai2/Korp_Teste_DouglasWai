@@ -87,6 +87,7 @@
           <tr>
             <th>Número</th>
             <th>Status</th>
+            <th>Detalhes</th>
             <th>Ação</th>
           </tr>
         </thead>
@@ -98,6 +99,11 @@
                 <span class="status-pill" [class.closed]="nota.status === 'Fechada'">
                   {{ nota.status }}
                 </span>
+              </td>
+              <td>
+                <a class="ghost-button link-button" [routerLink]="['/notas-fiscais', nota.numero]">
+                  Ver detalhes
+                </a>
               </td>
               <td>
                 <button
@@ -118,7 +124,7 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="3" class="empty-state">Nenhuma nota fiscal cadastrada.</td>
+              <td colspan="4" class="empty-state">Nenhuma nota fiscal cadastrada.</td>
             </tr>
           }
         </tbody>

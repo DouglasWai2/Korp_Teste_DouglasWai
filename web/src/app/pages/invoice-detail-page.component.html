@@ -1,0 +1,87 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="page-kicker">Faturamento</p>
+      <h2>Detalhes da nota fiscal</h2>
+    </div>
+    <div class="header-actions">
+      <a class="ghost-button link-button" routerLink="/notas-fiscais">Voltar</a>
+      @if (notaFiscal(); as nota) {
+        <button
+          type="button"
+          class="primary-button"
+          (click)="printNotaFiscal()"
+          [disabled]="nota.status === 'Fechada' || printing()"
+        >
+          {{
+            printing()
+              ? 'Imprimindo...'
+              : nota.status === 'Fechada'
+                ? 'Nota impressa'
+                : 'Imprimir nota'
+          }}
+        </button>
+      }
+    </div>
+  </header>
+
+  @if (feedback()) {
+    <div class="feedback" [class.error]="feedbackType() === 'error'">
+      {{ feedback() }}
+    </div>
+  }
+
+  @if (loading()) {
+    <section class="panel">
+      <p class="empty-state">Carregando detalhes da nota fiscal...</p>
+    </section>
+  } @else if (notaFiscal(); as nota) {
+    <section class="panel summary-grid">
+      <div class="summary-card">
+        <span class="summary-label">Numero</span>
+        <strong>#{{ nota.numero }}</strong>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Status</span>
+        <span class="status-pill" [class.closed]="nota.status === 'Fechada'">
+          {{ nota.status }}
+        </span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Itens</span>
+        <strong>{{ nota.itens.length }}</strong>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="table-header">
+        <h3>Itens da nota</h3>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Codigo do produto</th>
+              <th>Descricao</th>
+              <th>Quantidade</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of nota.itens; track item.codigo_produto) {
+              <tr>
+                <td>{{ item.codigo_produto }}</td>
+                <td>{{ productDescription(item.codigo_produto) }}</td>
+                <td>{{ item.quantidade }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3" class="empty-state">Essa nota fiscal nao possui itens.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+</section>

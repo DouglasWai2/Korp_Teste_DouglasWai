@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { API_URLS } from '../api.config';
 import { mapInvoiceCreationError, mapInvoicePrintError, mapProductError } from '../http-error.utils';
@@ -22,7 +23,7 @@ interface NotaFiscalItemForm {
 
 @Component({
   selector: 'app-invoice-page',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './invoice-page.component.html',
   styleUrl: './invoice-page.component.css'
 })
