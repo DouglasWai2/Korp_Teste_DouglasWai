@@ -9,9 +9,11 @@ import (
 
 type ProductService interface {
 	AddProduct(ctx context.Context, codigo string, descricao string, saldo int) error
+	DeleteProduct(ctx context.Context, codigo string) error
 	GetProducts(ctx context.Context) ([]models.Product, error)
 	GetProductByCode(ctx context.Context, codigo string) (*models.Product, error)
 	DecrementStock(ctx context.Context, codigo string, quantidade int) (*models.Product, error)
+	IncrementStock(ctx context.Context, codigo string, quantidade int) (*models.Product, error)
 }
 
 type productService struct {
@@ -35,6 +37,10 @@ func (p *productService) AddProduct(ctx context.Context, codigo string, descrica
 	return err
 }
 
+func (p *productService) DeleteProduct(ctx context.Context, codigo string) error {
+	return p.repo.DeleteProduct(ctx, codigo)
+}
+
 func (p *productService) GetProducts(ctx context.Context) ([]models.Product, error) {
 	products, err := p.repo.GetProducts(ctx)
 	if err != nil {
@@ -49,4 +55,8 @@ func (p *productService) GetProductByCode(ctx context.Context, codigo string) (*
 
 func (p *productService) DecrementStock(ctx context.Context, codigo string, quantidade int) (*models.Product, error) {
 	return p.repo.DecrementStock(ctx, codigo, quantidade)
+}
+
+func (p *productService) IncrementStock(ctx context.Context, codigo string, quantidade int) (*models.Product, error) {
+	return p.repo.IncrementStock(ctx, codigo, quantidade)
 }

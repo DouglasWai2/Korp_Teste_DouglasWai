@@ -1,0 +1,128 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="page-kicker">Faturamento</p>
+      <h2>Notas fiscais</h2>
+    </div>
+    <button type="button" class="ghost-button" (click)="loadNotasFiscais()" [disabled]="loadingNotas()">
+      {{ loadingNotas() ? 'Atualizando...' : 'Atualizar notas' }}
+    </button>
+  </header>
+
+  @if (feedback()) {
+    <div class="feedback" [class.error]="feedbackType() === 'error'">
+      {{ feedback() }}
+    </div>
+  }
+
+  <section class="panel">
+    <div class="form-headline">
+      <div>
+        <h3>Nova nota fiscal</h3>
+      </div>
+      <button type="button" class="ghost-button" (click)="addInvoiceItem()">
+        Adicionar item
+      </button>
+    </div>
+
+    <form class="stack" (ngSubmit)="createNotaFiscal()">
+      <div class="stack compact">
+        @for (item of invoiceForm.itens; track $index) {
+          <div class="invoice-item-row">
+            <label class="field">
+              <span>Código do produto</span>
+              <input
+                [(ngModel)]="item.codigo_produto"
+                [name]="'codigo_produto_' + $index"
+                list="product-codes"
+                placeholder="ABC123"
+                required
+              />
+            </label>
+
+            <label class="field">
+              <span>Quantidade</span>
+              <input
+                [(ngModel)]="item.quantidade"
+                [name]="'quantidade_' + $index"
+                type="number"
+                min="1"
+                required
+              />
+            </label>
+
+            <button
+              type="button"
+              class="danger-button"
+              (click)="removeInvoiceItem($index)"
+              [disabled]="invoiceForm.itens.length === 1"
+            >
+              Remover
+            </button>
+          </div>
+        }
+      </div>
+
+      <datalist id="product-codes">
+        @for (product of products(); track product.codigo) {
+          <option [value]="product.codigo"></option>
+        }
+      </datalist>
+
+      <button type="submit" class="primary-button" [disabled]="submittingNota()">
+        {{ submittingNota() ? 'Criando nota...' : 'Cadastrar nota fiscal' }}
+      </button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="table-header">
+      <h3>Notas cadastradas</h3>
+      <span>{{ notasFiscais().length }} registros</span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Status</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (nota of notasFiscais(); track nota.numero) {
+            <tr>
+              <td>#{{ nota.numero }}</td>
+              <td>
+                <span class="status-pill" [class.closed]="nota.status === 'Fechada'">
+                  {{ nota.status }}
+                </span>
+              </td>
+              <td>
+                <button
+                  type="button"
+                  class="primary-button small"
+                  (click)="printNotaFiscal(nota.numero)"
+                  [disabled]="nota.status === 'Fechada' || printingNotaNumero() === nota.numero"
+                >
+                  {{
+                    printingNotaNumero() === nota.numero
+                      ? 'Imprimindo...'
+                      : nota.status === 'Fechada'
+                        ? 'Impressa'
+                        : 'Imprimir nota'
+                  }}
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="3" class="empty-state">Nenhuma nota fiscal cadastrada.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>

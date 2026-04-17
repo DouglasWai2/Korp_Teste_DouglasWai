@@ -6,18 +6,24 @@ import (
 	"errors"
 	"estoque/internal/models"
 	"fmt"
+
+	"github.com/lib/pq"
 )
 
 var (
-	ErrProductNotFound   = errors.New("product not found")
-	ErrInsufficientStock = errors.New("insufficient stock")
+	ErrProductAlreadyExists = errors.New("product already exists")
+	ErrProductInUse         = errors.New("product in use")
+	ErrProductNotFound      = errors.New("product not found")
+	ErrInsufficientStock    = errors.New("insufficient stock")
 )
 
 type ProductRepository interface {
 	GetProducts(ctx context.Context) ([]models.Product, error)
 	GetProductByCode(ctx context.Context, codigo string) (*models.Product, error)
 	AddProduct(ctx context.Context, product *models.Product) error
+	DeleteProduct(ctx context.Context, codigo string) error
 	DecrementStock(ctx context.Context, codigo string, quantidade int) (*models.Product, error)
+	IncrementStock(ctx context.Context, codigo string, quantidade int) (*models.Product, error)
 }
 
 type productRepository struct {
@@ -37,7 +43,37 @@ func (r *productRepository) AddProduct(ctx context.Context, product *models.Prod
 	_, err := r.db.ExecContext(ctx, query, product.Codigo, product.Descricao, product.Saldo)
 
 	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
+			return ErrProductAlreadyExists
+		}
 		return fmt.Errorf("Add Product error: %w", err)
+	}
+
+	return nil
+}
+
+func (r *productRepository) DeleteProduct(ctx context.Context, codigo string) error {
+	query := `
+		DELETE FROM product
+		WHERE codigo = $1
+	`
+
+	result, err := r.db.ExecContext(ctx, query, codigo)
+	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code == "23503" {
+			return ErrProductInUse
+		}
+		return fmt.Errorf("delete product error: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return ErrProductNotFound
 	}
 
 	return nil
@@ -111,6 +147,25 @@ func (r *productRepository) DecrementStock(ctx context.Context, codigo string, q
 			return nil, ErrInsufficientStock
 		}
 		return nil, fmt.Errorf("decrement stock error: %w", err)
+	}
+
+	return &product, nil
+}
+
+func (r *productRepository) IncrementStock(ctx context.Context, codigo string, quantidade int) (*models.Product, error) {
+	query := `
+		UPDATE product
+		SET saldo = saldo + $2
+		WHERE codigo = $1
+		RETURNING codigo, descricao, saldo
+	`
+
+	var product models.Product
+	if err := r.db.QueryRowContext(ctx, query, codigo, quantidade).Scan(&product.Codigo, &product.Descricao, &product.Saldo); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrProductNotFound
+		}
+		return nil, fmt.Errorf("increment stock error: %w", err)
 	}
 
 	return &product, nil

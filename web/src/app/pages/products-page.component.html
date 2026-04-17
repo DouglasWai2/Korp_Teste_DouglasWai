@@ -1,0 +1,114 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="page-kicker">Estoque</p>
+      <h2>Produtos</h2>
+      <p class="page-copy">Cadastre produtos e acompanhe o saldo atual.</p>
+    </div>
+    <button type="button" class="ghost-button" (click)="loadProducts()" [disabled]="loadingProducts()">
+      {{ loadingProducts() ? 'Atualizando...' : 'Atualizar lista' }}
+    </button>
+  </header>
+
+  @if (feedback()) {
+    <div class="feedback" [class.error]="feedbackType() === 'error'">
+      {{ feedback() }}
+    </div>
+  }
+
+  <section class="panel">
+    <form class="stack" (ngSubmit)="createProduct()">
+      <div class="grid two-columns">
+        <label class="field">
+          <span>Código</span>
+          <input [(ngModel)]="productForm.codigo" name="codigo" maxlength="6" placeholder="ABC123" required />
+        </label>
+
+        <label class="field">
+          <span>Saldo inicial</span>
+          <input [(ngModel)]="productForm.saldo" name="saldo" type="number" min="0" required />
+        </label>
+      </div>
+
+      <label class="field">
+        <span>Descrição</span>
+        <input [(ngModel)]="productForm.descricao" name="descricao" placeholder="Produto para venda" required />
+      </label>
+
+      <button type="submit" class="primary-button" [disabled]="submittingProduct()">
+        {{ submittingProduct() ? 'Salvando produto...' : 'Cadastrar produto' }}
+      </button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="table-header">
+      <h3>Produtos cadastrados</h3>
+      <span>{{ products().length }} itens</span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Descrição</th>
+            <th>Saldo</th>
+            <th>Adicionar saldo</th>
+            <th>Remover</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (product of products(); track product.codigo) {
+            <tr>
+              <td>{{ product.codigo }}</td>
+              <td>{{ product.descricao }}</td>
+              <td>{{ product.saldo }}</td>
+              <td>
+                <div class="stock-action">
+                  <input
+                    [(ngModel)]="stockInputs[product.codigo]"
+                    [ngModelOptions]="{ standalone: true }"
+                    type="number"
+                    min="1"
+                    placeholder="Qtd"
+                  />
+                  <button
+                    type="button"
+                    class="ghost-button small-button"
+                    (click)="incrementStock(product.codigo)"
+                    [disabled]="updatingStockCode() === product.codigo"
+                  >
+                    {{
+                      updatingStockCode() === product.codigo
+                        ? 'Salvando...'
+                        : 'Adicionar'
+                    }}
+                  </button>
+                </div>
+              </td>
+              <td>
+                <button
+                  type="button"
+                  class="danger-button small-button"
+                  (click)="deleteProduct(product.codigo)"
+                  [disabled]="deletingProductCode() === product.codigo"
+                >
+                  {{
+                    deletingProductCode() === product.codigo
+                      ? 'Removendo...'
+                      : 'Remover'
+                  }}
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="empty-state">Nenhum produto cadastrado.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>

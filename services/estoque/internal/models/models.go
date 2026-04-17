@@ -6,6 +6,6 @@ type Product struct {
 	Saldo     int    `json:"saldo" db:"saldo"`
 }
 
-type DecrementStockRequest struct {
+type StockChangeRequest struct {
 	Quantidade int `json:"quantidade"`
 }
