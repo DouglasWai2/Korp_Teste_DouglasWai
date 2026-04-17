@@ -20,7 +20,7 @@ func NewProductRepository(database *sql.DB) *productRepository {
 	return &productRepository{db: database}
 }
 
-func (r *productRepository) AddProduct(ctx context.Context, product models.Product) error {
+func (r *productRepository) AddProduct(ctx context.Context, product *models.Product) error {
 
 	query := `
 			INSERT INTO product (codigo, descricao, saldo)
@@ -38,10 +38,24 @@ func (r *productRepository) AddProduct(ctx context.Context, product models.Produ
 func (r *productRepository) GetProducts(ctx context.Context) ([]models.Product, error) {
 	var products []models.Product
 	query := `
-			SELECT *
+			SELECT codigo, descricao, saldo
 			FROM product
 		`
-	if err := r.db.QueryRowContext(ctx, query).Scan(&products); err != nil {
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var product models.Product
+		if err := rows.Scan(&product.Codigo, &product.Descricao, &product.Saldo); err != nil {
+			return nil, err
+		}
+		products = append(products, product)
+	}
+
+	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 

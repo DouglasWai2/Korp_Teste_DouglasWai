@@ -7,8 +7,8 @@ import (
 	"estoque/internal/repository"
 )
 
-type ProductService interface{
-	AddProduct(codigo string, descricao string, saldo int) error
+type ProductService interface {
+	AddProduct(ctx context.Context, codigo string, descricao string, saldo int) error
 	GetProducts(ctx context.Context) ([]models.Product, error)
 }
 
@@ -22,19 +22,18 @@ func NewProductService(repo repository.ProductRepository) *productService {
 	}
 }
 
-func (p *productService) AddProduct(c context.Context, codigo string, descricao string, saldo int) error{
+func (p *productService) AddProduct(ctx context.Context, codigo string, descricao string, saldo int) error {
 	product := models.Product{
 		Codigo:    codigo,
 		Descricao: descricao,
 		Saldo:     saldo,
 	}
-	
-	
-	err := p.repo.AddProduct(c, &product)
+
+	err := p.repo.AddProduct(ctx, &product)
 	return err
 }
 
-func (p *productService) GetProducts(ctx context.Context) ([]models.Product, error){
+func (p *productService) GetProducts(ctx context.Context) ([]models.Product, error) {
 	products, err := p.repo.GetProducts(ctx)
 	if err != nil {
 		return nil, err
