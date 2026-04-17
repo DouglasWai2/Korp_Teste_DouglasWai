@@ -1,14 +1,15 @@
 package main
 
 import (
-	"nf-system/api/estoque/config"
+	"estoque/config"
 
 	"github.com/gin-gonic/gin"
 )
 
 
 func main() {
-	db := config.Db_connect()
+	cfg := config.Load()
+	db := cfg.DBUrl
 	var router *gin.Engine = gin.Default()
 	
 	
